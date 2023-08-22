@@ -12,8 +12,26 @@ function App() {
   const [scannedDataList, setScannedDataList] = useState([]);
 
   useEffect(() => {
-    checkCamera();
+    askForCameraPermission();
   }, []);
+
+  const askForCameraPermission = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const tracks = stream.getTracks();
+      const hasBackCamera = tracks.some(
+        (track) => track.getSettings().facingMode === "environment"
+      );
+
+      if (!hasBackCamera) {
+        alert("El dispositivo no tiene una cámara trasera disponible.");
+      }
+
+      tracks.forEach((track) => track.stop());
+    } catch (error) {
+      alert("No se pudo acceder a la cámara del dispositivo.");
+    }
+  };
 
   const checkCamera = async () => {
     const devices = await navigator.mediaDevices.enumerateDevices();
