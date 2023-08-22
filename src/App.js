@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Webcam from "react-webcam";
 import QRCode from "qrcode.react";
 import "./App.css";
@@ -10,6 +10,20 @@ function App() {
   const [qrData, setQRData] = useState(null);
   const [isCameraFacingFront, setIsCameraFacingFront] = useState(true);
   const [scannedDataList, setScannedDataList] = useState([]);
+
+  useEffect(() => {
+    checkCamera();
+  }, []);
+
+  const checkCamera = async () => {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const hasBackCamera = devices.some(
+      (device) => device.kind === "videoinput" && !device.label.includes("front")
+    );
+    if (!hasBackCamera) {
+      alert("El dispositivo no tiene una cámara trasera disponible.");
+    }
+  };
 
   const captureQRCode = () => {
     const imageSrc = webcamRef.current.getScreenshot();
@@ -38,7 +52,9 @@ function App() {
   };
 
   const toggleCamera = () => {
-    setIsCameraFacingFront(!isCameraFacingFront);
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      setIsCameraFacingFront(!isCameraFacingFront);
+    }
   };
 
   return (
@@ -47,7 +63,7 @@ function App() {
       <div className="camera-container">
         <Webcam
           audio={false}
-          mirrored={isCameraFacingFront}
+          mirrored={!isCameraFacingFront}
           ref={webcamRef}
           screenshotFormat="image/jpeg"
           style={{ width: "100%", height: "100%" }}
