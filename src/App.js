@@ -5,9 +5,13 @@ import "./App.css";
 import jsqr from "jsqr";
 import "bootstrap/dist/css/bootstrap.min.css";
 
+const FACING_MODE_USER = "user";
+const FACING_MODE_ENVIRONMENT = "environment";
+
 function App() {
   const webcamRef = useRef(null);
   const [qrData, setQRData] = useState(null);
+  const [facingMode, setFacingMode] = useState(FACING_MODE_USER);
   const [isCameraFacingFront, setIsCameraFacingFront] = useState(true);
   const [scannedDataList, setScannedDataList] = useState([]);
 
@@ -30,16 +34,6 @@ function App() {
       tracks.forEach((track) => track.stop());
     } catch (error) {
       alert("No se pudo acceder a la cámara del dispositivo.");
-    }
-  };
-
-  const checkCamera = async () => {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const hasBackCamera = devices.some(
-      (device) => device.kind === "videoinput" && !device.label.includes("front")
-    );
-    if (!hasBackCamera) {
-      alert("El dispositivo no tiene una cámara trasera disponible.");
     }
   };
 
@@ -71,7 +65,12 @@ function App() {
 
   const toggleCamera = () => {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      setIsCameraFacingFront(!isCameraFacingFront);
+      setFacingMode(
+        (prevState) =>
+          prevState === FACING_MODE_USER
+            ? FACING_MODE_ENVIRONMENT
+            : FACING_MODE_USER
+      );
     }
   };
 
@@ -85,6 +84,9 @@ function App() {
           ref={webcamRef}
           screenshotFormat="image/jpeg"
           style={{ width: "100%", height: "100%" }}
+          videoConstraints={{
+            facingMode: facingMode,
+          }}
         />
         <div className="camera-capture-button">
           <button className="btn btn-primary" onClick={captureQRCode}>
